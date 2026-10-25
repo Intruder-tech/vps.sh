@@ -1,0 +1,5 @@
+NAME="CentOS Linux"
+VERSION_ID="7"
+ID="centos"
+ID_LIKE="rhel fedora"
+PRETTY_NAME="CentOS Linux 7 (Core)"
