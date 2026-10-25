@@ -44,6 +44,22 @@ The script detects the OS from `/etc/os-release`. Derivatives (for example Linux
 - A lock file stops two runs at once. Everything is logged to `/var/log/vps-bootstrap.log` (mode 600).
 - If one step fails, the remaining steps still run. The summary reports the failure and the exit code is 1. SSH hardening is skipped if the admin-user step failed.
 
+## Quick install
+
+```bash
+# Preview (no changes), then run interactively
+curl -fsSL https://enlo.online/vps.sh | sudo bash -s -- --dry-run --yes
+curl -fsSL https://enlo.online | sudo bash
+
+# Unattended, with flags after `--`
+curl -fsSL https://enlo.online/vps.sh | sudo bash -s -- --yes --admin-user deploy --copy-root-keys
+
+# Verify before running
+curl -fsSLO https://enlo.online/vps.sh && curl -fsSL https://enlo.online/vps.sh.sha256 | sha256sum -c - && sudo bash vps.sh
+```
+
+Interactive prompts read from `/dev/tty`, so they work when the script is piped from `curl`.
+
 ## Usage
 
 ```bash
@@ -74,5 +90,7 @@ To revert SSH hardening, run `rm /etc/ssh/sshd_config.d/01-vps-sh-hardening.conf
 bash tests/run_tests.sh        # syntax, shellcheck, unit tests, CLI parsing, host dry-run (changes nothing)
 bash tests/container_tests.sh  # real installs in throwaway Docker containers (ubuntu 22.04/24.04, debian 12, rocky 9, alma 9, fedora 40)
 ```
+
+The container tests use Docker host networking by default (`--network host`), because some VPS hosts have no outbound route on the default Docker bridge. To use the bridge instead, run `DOCKER_NETWORK=bridge bash tests/container_tests.sh`. You can also pass specific images, for example `bash tests/container_tests.sh debian:12`.
 
 `run_tests.sh` checksums key files in `/etc` before and after a dry-run to prove nothing changed. `container_tests.sh` never touches the host. It runs a real install in each container, checks the result, and runs the install a second time to prove it is idempotent. Containers have no systemd, so firewall, fail2ban, swap and the SSH reload are covered by unit tests and dry-run only.
